@@ -5,11 +5,23 @@
 float tiempoInicio = 0;
 float tiempoFin = 0;
 float angulo = 0;
+float tiempo_tot = 0;
+
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   pinMode(PINPOTE, INPUT);
+  tiempoInicio = micros();  // Marca de tiempo inicial 
+  for (int i = 0; i<100; i++){
+      int pote= analogRead(A0);
+      angulo = pote/CTEPROP;
+  }
+  tiempoFin = micros();  // Marca de tiempo final
+  tiempo_tot = tiempoFin - tiempoInicio;
+  tiempo_tot = tiempo_tot/100;
+  Serial.println(tiempo_tot);
+
 }
 
 void loop() {
@@ -19,8 +31,8 @@ void loop() {
   int pote= analogRead(A0);
   angulo = pote/CTEPROP;
   tiempoFin = micros();  // Marca de tiempo final
-  Serial.println((tiempoFin - tiempoInicio));
-  Serial.println(angulo);
+  //Serial.println((tiempoFin - tiempoInicio));
+  //Serial.println(angulo);
   delayMicroseconds(15000);
   delayMicroseconds(5000 - (tiempoFin - tiempoInicio));
 
