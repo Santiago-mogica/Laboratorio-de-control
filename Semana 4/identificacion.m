@@ -1,10 +1,11 @@
+
+
 close all; 
 u = out.x(50:end);    % vector columna
 u = u - 90;
 y = out.y(50:end);    % vector columna
 t = out.tout();    % vector de tiempos
 
-%pedirle a chat que em guarde x e u etc para despues recrearlo
 
 % ======================
 % 1. Armar regresores
@@ -12,7 +13,7 @@ t = out.tout();    % vector de tiempos
 N = length(y) - 2;
 Y = y(3:end);                              % salida actual
 X = [ y(2:end-1), y(1:end-2), u(1:N) ];    % regresores
-
+%}
 % ======================
 % 2. Resolver con pseudoinversa
 % ======================
@@ -26,8 +27,8 @@ gamma = vectorAlfa(3);
 % 3. Modelo en diferencias
 % y(k) = alfa*y(k-1) + beta*y(k-2) + gamma*u(k-2)
 % ======================
-Ts = t(2) - t(1);    % tiempo de muestreo
-
+%Ts = t(2) - t(1);    % tiempo de muestreo
+Ts = 0.02;
 num = [0 0 gamma];   % z^-2 → [0 0 γ]
 den = [1 -alfa -beta];
 
@@ -64,7 +65,9 @@ ylabel('Salida');
 title('Comparación entre sistema real y modelo ARX');
 grid on;
 
+zpk(Gc)
+pole(Gc)
 
 % Guardar todo en un archivo .mat
-save('modelo_ARX_out.mat', 'alfa','beta','gamma','y_sim','y_real','t_sim', 'N', 'Y', 'X');
+%save('modelo_ARX_out.mat', 'alfa','beta','gamma','y_sim','y_real','t_sim', 'N', 'Y', 'X');
 
