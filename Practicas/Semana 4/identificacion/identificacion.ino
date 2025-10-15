@@ -23,7 +23,8 @@ unsigned long tiempoInicio, tiempoFin, tiempoPrueban;
 float datos[] = {0,0}; // x, y
 float titas[] = {0,0,0,0,0};
 float titasSesgo[] = {0,0,0,0,0};
-float angulosEscalon[] = {120, 90, 60}; // en grados
+float angulosEscalon[] = {15, 0, -15}; // en grados
+float tita_barra = 0;
 
 void setup(void) {
 	Serial.begin(115200);
@@ -54,8 +55,8 @@ void setup(void) {
 
     titasSesgo[0] += g.gyro.x *(180/PI) *TS;                               //tita_g
     titasSesgo[1] = atan2(a.acceleration.y, a.acceleration.z ) *(180/PI);  //tita_a
-    titasSesgo[2] = titas[3] + g.gyro.x *(180/PI) *TS; 
-    titasSesgo[3] = (alfa * titas[1]) + ((1-alfa) *titas[2]); 
+    titasSesgo[2] = titasSesgo[3] + g.gyro.x *(180/PI) *TS; 
+    titasSesgo[3] = ((alfa * titasSesgo[1]) + ((1-alfa) *titasSesgo[2])); 
     sesgo += titasSesgo[3];
   }
   sesgo = sesgo/50;
@@ -72,11 +73,18 @@ void loop() {
 
   //servo write cada 150 iteraciones del ciclo osea 3 segundos
   if(j > 100){
-    indice++;
-    t_us = 540 + (long)angulosEscalon[indice%3] * (2400 - 540) / 180;
-    j = 0;
+    if (indice < 6) {
+      indice++; 
+    }
+    // Después de pasar 6 escalones, queda fijo en el último
+    if (indice >= 6) {
+      indice = 5; // se queda fijo en -15°
+    }
+    float anguloRef = angulosEscalon[indice%3];    
+    t_us = 540 + ((long)(anguloRef + 90)) * (2400 - 540) / 180;
     servo.writeMicroseconds(t_us);
-    datos[0] = angulosEscalon[indice%3];
+    datos[0] = anguloRef;
+    j = 0;
   }    
   
   // envio data
@@ -86,9 +94,11 @@ void loop() {
   titas[0] += g.gyro.x *(180/PI) *TS;                               //tita_g
   titas[1] = atan2(a.acceleration.y, a.acceleration.z ) *(180/PI);  //tita_a
   titas[2] = titas[3] + g.gyro.x *(180/PI) *TS; 
-  titas[3] = (alfa * titas[1]) + ((1-alfa) *titas[2]);
+  titas[3] = ((alfa * titas[1]) + ((1-alfa) *titas[2]));
+  tita_barra =(-1)* (titas[3] - sesgo);
+
   
-  datos[1] = titas[3] - sesgo; 
+  datos[1] = tita_barra; //angulo de la barra
 
   if(i%3 == 0){
     matlab_send(datos, 2);  
@@ -99,7 +109,7 @@ void loop() {
   tiempoFin = micros();
   unsigned long tiempoTranscurrido = tiempoFin - tiempoInicio;
   if(tiempoTranscurrido < 20000) {  // 20ms in microseconds
-    delayMicroseconds((50000 - tiempoTranscurrido));  
+    delayMicroseconds((5000 - tiempoTranscurrido));  
     delay(15);
   }
   i++; j++;

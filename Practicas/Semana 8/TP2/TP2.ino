@@ -29,7 +29,7 @@ unsigned long tiempoInicio, tiempoFin, tiempoPrueban;
 float datos[] = {0,0}; // x, y
 float titas[] = {0,0,0,0,0};
 float titasSesgo[] = {0,0,0,0,0};
-float entradaEscalon[] = {-10, 10}; // en grados
+float entradaEscalon[] = {-13, 13}; // en grados
 float tita_barra = 0, tita_servo_prev = 0, tita_servo = 0;
 float referencia = 15.85; //en cm
 float error = 0, error_acum =0, error_ant = 0;
@@ -101,7 +101,7 @@ void loop() {
   titas[0] += g.gyro.x *(180/PI) *TS;                               //tita_g
   titas[1] = atan2(a.acceleration.y, a.acceleration.z ) *(180/PI);  //tita_a
   titas[2] = titas[3] + g.gyro.x *(180/PI) *TS; 
-  titas[3] = (-1)*(alfa * titas[1]) + ((1-alfa) *titas[2]);
+  titas[3] = (-1)*((alfa * titas[1]) + ((1-alfa) *titas[2]));
   
   tita_barra = titas[3] - sesgo;
   datos[0] = tita_barra;
@@ -135,7 +135,7 @@ void loop() {
     delay(15);
   }
   i++;
-  
+  delay(25);
 }
 
 void matlab_send(float* vector, int size) {
