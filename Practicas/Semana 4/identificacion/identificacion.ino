@@ -23,12 +23,11 @@ unsigned long tiempoInicio, tiempoFin, tiempoPrueban;
 float datos[] = {0,0}; // x, y
 float titas[] = {0,0,0,0,0};
 float titasSesgo[] = {0,0,0,0,0};
-float angulosEscalon[] = {15, 0, -15}; // en grados
+float angulosEscalon[] = {15, -15}; // en grados
 float tita_barra = 0;
 
 void setup(void) {
 	Serial.begin(115200);
-	delay(100);
 
   // inicializo el servo en 0°
   servo.attach(PINSERVO);
@@ -37,6 +36,7 @@ void setup(void) {
   t_us = 540 + (long)angulo * (2400 - 540) / 180;
   servo.writeMicroseconds(t_us);
 
+	delay(100);
   //inicializo la IMU, tendía que leer 0°
   if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
@@ -67,20 +67,19 @@ void loop() {
 
 // servo write angulosEscalon - lectura del angulo con el mpu - lo pasamos a matlab, leemos la rta transitoria.
 
-
   // Matlab send
   tiempoInicio = micros();
 
   //servo write cada 150 iteraciones del ciclo osea 3 segundos
   if(j > 100){
-    if (indice < 6) {
+    if (indice < 10) {
       indice++; 
     }
     // Después de pasar 6 escalones, queda fijo en el último
-    if (indice >= 6) {
-      indice = 5; // se queda fijo en -15°
+    if (indice >= 10) {
+      indice = 9; // se queda fijo en -15°
     }
-    float anguloRef = angulosEscalon[indice%3];    
+    float anguloRef = angulosEscalon[indice%2];    
     t_us = 540 + ((long)(anguloRef + 90)) * (2400 - 540) / 180;
     servo.writeMicroseconds(t_us);
     datos[0] = anguloRef;
