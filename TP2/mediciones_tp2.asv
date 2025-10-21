@@ -1,0 +1,88 @@
+%% ===========================
+% Estimación del parámetro m/b
+% ============================
+
+clc; close all;
+
+% --- Parámetros físicos ---
+g = 9.81;   % [m/s^2]
+Ts = 0.02;  % [s] periodo de muestreo
+
+% --- Datos medidos ---
+% out.x -> ángulo (rad)
+% out.y -> posición del carrito (m)
+tita_deg = out.x();      % vector columna (ángulo de la barra)
+x = out.y();         % vector columna (posición del carrito)
+t = (0:length(x)-1)' * Ts; % vector de tiempo asociado
+
+% Convertir a radianes para usar sin(), cos(), etc.
+tita = deg2rad(tita_deg);   % ahora en radianes
+
+% Si el ángulo es prácticamente constante durante la medición,
+% usamos el ángulo medio (en radianes) para el ajuste:
+theta = mean(tita);
+fprintf('Ángulo medio: %.4f rad (%.2f°)\n', theta, rad2deg(theta));
+% --- Modelo analítico (q = m/b) ---
+model = @(q,t,theta,x0) x0 + q.^2 .* g .* sin(theta) .* (1 - exp(-t./q)) ...
+                            - q .* g .* sin(theta) .* t;
+
+% --- Estimación inicial (aproximación por pendiente final) ---
+x0 = x(1); % posición inicial medida
+nTail = max(5, round(0.2 * numel(t))); % 20% final de los datos
+pTail = polyfit(t(end-nTail+1:end), x(end-nTail+1:end), 1);
+slope = pTail(1); % pendiente de la parte final
+q0 = max(1e-3, -slope / (g * sin(theta))); % estimación inicial positiva
+fprintf('Estimación inicial q0 = %.4f s\n', q0);
+
+% --- Estimación por mínimos cuadrados ---
+if exist('lsqcurvefit', 'file')
+    fun = @(q,tt) model(q, tt, theta, x0);
+    lb = 1e-6; ub = 100; % cotas (ajustables según tu sistema)
+    options = optimoptions('lsqcurvefit', ...
+        'Display','iter', 'MaxIterations',200, 'TolFun',1e-12);
+    
+    [q_est, ~, residual, ~, ~, ~, J] = lsqcurvefit(fun, q0, t, x, lb, ub, options);
+else
+    % alternativa sin Optimization Toolbox
+    sse = @(q) sum((x - model(q, t, theta, x0)).^2);
+    q_est = fminsearch(sse, q0);
+end
+
+fprintf('\nEstimación final: q = m/b = %.6f s\n', q_est);
+
+% --- Intervalo de confianza (si se usó lsqcurvefit) ---
+if exist('J','var')
+    ci = nlparci(q_est, residual, 'jacobian', J);
+    fprintf('IC 95%% (aprox. lineal): [%.4f, %.4f] s\n', ci(1), ci(2));
+end
+
+% --- Gráfico de ajuste ---
+tFine = linspace(0, t(end), 500);
+xFit = model(q_est, tFine, theta, x0);
+
+figure;
+plot(t, x, 'b.', 'DisplayName','Datos medidos');
+hold on;
+plot(tFine, xFit, 'r-', 'LineWidth', 1.8, 'DisplayName','Modelo ajustado');
+xlabel('Tiempo [s]');
+ylabel('Posición del carrito [m]');
+title(sprintf('Ajuste del modelo (q = %.4f s)', q_est));
+legend('Location','best');
+grid on;
+
+% --- Bootstrap opcional (para IC más robusto) ---
+if exist('lsqcurvefit', 'file')
+    nboot = 200;
+    N = numel(t);
+    qboot = nan(nboot,1);
+    fprintf('\nEjecutando bootstrap (%d iteraciones)...\n', nboot);
+    for k = 1:nboot
+        idx = randsample(N, N, true);
+        tb = t(idx); xb = x(idx);
+        x0b = xb(1);
+        qboot(k) = lsqcurvefit(@(q,tt) model(q,tt,theta,x0b), ...
+                               q_est, tb, xb, lb, ub, options);
+    end
+    q_ci = prctile(qboot, [2.5 97.5]);
+    fprintf('IC 95%% (bootstrap): [%.4f, %.4f] s\n', q_ci(1), q_ci(2));
+end

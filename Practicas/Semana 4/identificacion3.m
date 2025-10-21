@@ -22,15 +22,15 @@ p_cont2 = log(p2)/Ts
 % Ganancia medida (ejemplo usando tus datos)
 y_ss = mean(out.y(end-50:end));
 u_ss = mean(out.x(end-50:end));
-y_ss = mean(y);
-u_ss = mean(x);
+%y_ss = mean(y);
+%u_ss = mean(x);
 K_meas = y_ss / u_ss;    % p.ej. ~ 5.7/15 = 0.38
 
 % Construcción correcta: numerador n0 tal que G(0)=K_meas
 prod_p_cont = p_cont1 * p_cont2;
 n0 = K_meas * prod_p_cont;      % n0 = K_meas * p_c1 * p_c2
 den = real(poly([p_cont1 p_cont2]));   % coeficientes reales del denominador
-
+%no = 5000;
 Gc_from_poles = tf(n0, den);    % planta continua con DC = K_meas
 
 % Mostrar comprobaciones
