@@ -66,5 +66,5 @@ grid on;
 
 
 % Guardar todo en un archivo .mat
-save('modelo_ARX_out.mat', 'alfa','beta','gamma','y_sim','y_real','t_sim', 'N', 'Y', 'X');
+% save('modelo_ARX_out.mat', 'alfa','beta','gamma','y_sim','y_real','t_sim', 'N', 'Y', 'X');
 
