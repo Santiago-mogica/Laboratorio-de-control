@@ -50,4 +50,8 @@ plot(t, y_sim_realinput, 'r--', 'DisplayName','sim P (misma entrada)');
 
 
 legend; grid on; xlabel('t [s]'); ylabel('Angulo barra (grados)');
-title('Comparación: medición vs modelo');
+%title('Comparación: medición vs modelo');
+
+
+figure;
+step(Gc_from_poles);
