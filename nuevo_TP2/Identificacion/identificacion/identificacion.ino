@@ -105,7 +105,6 @@ void loop() {
   titas[3] = ((alfa * titas[1]) + ((1-alfa) *titas[2]));
   tita_barra =(-1)* (titas[3]);
   
-  
   datos[1] = tita_barra; //angulo de la barra
 
   if(i%3 == 0){

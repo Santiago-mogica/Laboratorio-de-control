@@ -15,8 +15,14 @@ Adafruit_MPU6050 mpu;
 #define CTEPROP 3.76666666666666
 #define PINSERVO 9
 float t_us = 0;
-float angulo = 90; float sesgo = 0;
+float angulo = 90;
 Servo servo;
+
+const int nbias = 200; // Cantidad de iteraciones para estimar el bias
+float bias_gyroX = 0; // Bias del giroscopio en X
+float bias_accY = 0; // Bias del Acelerometro en Y
+
+
 
 // init sensor
   #include <NewPing.h>
@@ -28,7 +34,6 @@ int i = 0; int j = 0;
 unsigned long tiempoInicio, tiempoFin, tiempoPrueban;
 float datos[] = {0,0}; // x, y
 float titas[] = {0,0,0,0,0};
-float titasSesgo[] = {0,0,0,0,0};
 float entradaEscalon[] = {10, 20}; // en cm
 float tita_barra = 0, tita_servo_prev = 0, tita_servo = 0;
 //float referencia = 16; //en cm
@@ -54,8 +59,10 @@ void setup(void) {
   delay(1000);
   // Mapeo   90º---> 1500us
   //         45º---> 1000us
-  t_us = 11.11 * (90) + 500;
-  //servo.writeMicroseconds(t_us);
+  //t_us = 11.11 * (90) + 500;
+  t_us = 540 + (long)angulo * (2400 - 540) / 180;
+  servo.writeMicroseconds(t_us);
+
   Serial.println("Initializing servo at 90°");
   delay(1000);
 
@@ -77,18 +84,22 @@ void setup(void) {
   delay(100);
 
   //obtengo el sesgo
-  for(int k = 0; k < 50; k++){
+  for (int i = 0; i < nbias ; i++) {
+    // Get new sensor events with the readings 
     sensors_event_t a, g, temp;
-    mpu.getEvent(&a, &g, &temp); 
+    mpu.getEvent(&a, &g, &temp);
 
-    titasSesgo[0] += g.gyro.x *(180/PI) *TS;                               //tita_g
-    titasSesgo[1] = atan2(a.acceleration.y, a.acceleration.z ) *(180/PI);  //tita_a
-    titasSesgo[2] = titas[3] + g.gyro.x *(180/PI) *TS; 
-    titasSesgo[3] = (alfa * titas[1]) + ((1-alfa) *titas[2]); 
-    sesgo += titasSesgo[3];
-  }
-  sesgo = sesgo/50;
-  delay(100);
+    // Acumula las lecturas
+    bias_gyroX += g.gyro.x;
+    bias_accY += a.acceleration.y;
+
+    delay(10); // Espera 10 ms entre lecturas
+  }  
+  // Calculo el sesgo promedio
+  bias_gyroX = bias_gyroX/nbias; 
+  bias_accY = bias_accY/nbias;
+
+
 }
 
 
@@ -114,19 +125,6 @@ void loop() {
   error = referencia - posicion;
   datos[0] = posicion;
 
-  // ==== control backwards
-  // kp = k0 *0.6; ki =0; kd = 3 * k0 * T0 / 40;
-  // con P: 4.3
-  // con PI : kp = ; ki =; kd = ;
-  // con PD = ; ki = ; kd = ;
-  //kp = 0.115; ki =0; kd = 0;
-  //error_acum += Ts*error;
-  //uk = (kp * error) + (ki * error_acum) + (kd * (error - error_ant)/Ts);
-  //error_ant = error;
-
-  //if (uk > 30)  uk = 30;
-  //if (uk < -30) uk = -30;
-  //  ====
 
   // === control bilineal
 
@@ -147,19 +145,11 @@ void loop() {
   //Serial.println(posicion);
   // Mapeo   90º---> 1500us
   //         45º---> 1000us
-  t_us = 11.11 * (uk+90) + 500;
+  //t_us = 11.11 * (uk+90) + 500;
+  t_us = 540 + ((long)(uk + 90)) * (2400 - 540) / 180;
   servo.writeMicroseconds(t_us);
 
 
-  //sensors_event_t a, g, temp;
-  //mpu.getEvent(&a, &g, &temp);
-
-  //titas[0] += g.gyro.x *(180/PI) *TS;                               //tita_g
-  //titas[1] = atan2(a.acceleration.y, a.acceleration.z ) *(180/PI);  //tita_a
-  //titas[2] = titas[3] + g.gyro.x *(180/PI) *TS; 
-  //titas[3] = (-1)*(alfa * titas[1]) + ((1-alfa) *titas[2]);
-  
-  //tita_barra = titas[3] - sesgo;
   datos[1] = referencia;
   matlab_send(datos, 2);
 
