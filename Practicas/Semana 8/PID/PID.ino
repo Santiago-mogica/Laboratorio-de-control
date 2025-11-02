@@ -77,8 +77,11 @@ void loop() {
   // le mandamos maximo cuartenta que es lo maximo de la barra
   tiempo_ping = sonar.ping(35) ;
   posicion = tiempo_ping / (velocidadSonido*2); //en cm
+
   error = entradaEscalon[j%3] - posicion;
   Serial.println(error);
+
+
   // ==== control backwards
   // con kp = 9.2 oscila, hace 5 oscilaciones en 8 segundos: T0 = 1.6 seg - pero supera la saturacion del sistema entonces no lo podemos usar
   k0 = 9.2; T0 = 1.6;
@@ -107,7 +110,7 @@ void loop() {
   tiempoFin = micros();
   unsigned long tiempoTranscurrido = tiempoFin - tiempoInicio;
   if(tiempoTranscurrido < 20000) {  // 20ms in microseconds
-    delayMicroseconds((50000 - tiempoTranscurrido));  
+    delayMicroseconds((5000 - tiempoTranscurrido));  
     delay(15);
   }
   i++;
