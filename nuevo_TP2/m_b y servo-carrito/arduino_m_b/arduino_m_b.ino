@@ -15,8 +15,12 @@ Adafruit_MPU6050 mpu;
 #define CTEPROP 3.76666666666666
 #define PINSERVO 9
 float t_us = 0;
-float angulo = 90; float sesgo = 0;
+float angulo = 90; 
 Servo servo;
+
+const int nbias = 200; // Cantidad de iteraciones para estimar el bias
+float bias_gyroX = 0; // Bias del giroscopio en X
+float bias_accY = 0; // Bias del Acelerometro en Y
 
 // init sensor
 #include <NewPing.h>
@@ -28,7 +32,6 @@ int i = 0;
 unsigned long tiempoInicio, tiempoFin, tiempoPrueban;
 float datos[] = {0,0}; // {posicion, tita}
 float titas[] = {0,0,0,0,0};
-float titasSesgo[] = {0,0,0,0,0};
 float tita_barra = 0;
 float referencia = 15.85; //en cm 
 float Ts = 0.02;
@@ -68,17 +71,21 @@ void setup(void) {
   pinMode(PINECHO, INPUT);
 
   //obtengo el sesgo
-  for(int k = 0; k < 50; k++){
+  for (int i = 0; i < nbias ; i++) {
+    // Get new sensor events with the readings 
     sensors_event_t a, g, temp;
-    mpu.getEvent(&a, &g, &temp); 
+    mpu.getEvent(&a, &g, &temp);
 
-    titasSesgo[0] += g.gyro.x *(180/PI) *TS;                               //tita_g
-    titasSesgo[1] = atan2(a.acceleration.y, a.acceleration.z ) *(180/PI);  //tita_a
-    titasSesgo[2] = titas[3] + g.gyro.x *(180/PI) *TS; 
-    titasSesgo[3] = -((alfa * titas[1]) + ((1-alfa) *titas[2])); 
-    sesgo += titasSesgo[3];
-  }
-  sesgo = sesgo/50;
+    // Acumula las lecturas
+    bias_gyroX += g.gyro.x;
+    bias_accY += a.acceleration.y;
+
+    delay(10); // Espera 10 ms entre lecturas
+  }  
+  // Calculo el sesgo promedio
+  bias_gyroX = bias_gyroX/nbias; 
+  bias_accY = bias_accY/nbias;
+
   delay(100);
 
   // inicio la barra en 20°
@@ -97,12 +104,11 @@ void loop() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
 
-  titas[0] += g.gyro.x *(180/PI) *TS;                               //tita_g
-  titas[1] = atan2(a.acceleration.y, a.acceleration.z ) *(180/PI);  //tita_a
-  titas[2] = titas[3] + g.gyro.x *(180/PI) *TS; 
-  titas[3] = (-1)*(alfa * titas[1]) + ((1-alfa) *titas[2]);
-  
-  tita_barra = titas[3];
+  titas[0] += (g.gyro.x - bias_gyroX) *(180/PI) *TS;                               //tita_g
+  titas[1] =  atan2((a.acceleration.y - bias_accY), (a.acceleration.z))*(180/PI); 
+  titas[2] = titas[3] + (g.gyro.x - bias_gyroX) *(180/PI) *TS; 
+  titas[3] = ((alfa * titas[1]) + ((1-alfa) *titas[2]));
+  tita_barra =(-1)* (titas[3]);
   
   //posicion, 
   tiempo_ping = sonar.ping(35) ;

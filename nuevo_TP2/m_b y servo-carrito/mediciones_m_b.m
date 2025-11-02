@@ -2,12 +2,13 @@ close all;
 
 tita_deg = out.tita_barra();   % primera columna
 x_meas = out.posicion();   % segunda columna
+x_prueba = x_meas;
 t1 = out.tout();
-idx_inicio = 3; 
-
-x_meas = x_meas(idx_inicio:end);
-tita_deg = tita_deg(idx_inicio:end);
-t1 = t1(idx_inicio:end);
+idx_inicio = 155; 
+idx_final = 20;
+x_meas = x_meas(idx_inicio:end - idx_final);
+tita_deg = tita_deg(idx_inicio:end - idx_final);
+t1 = t1(idx_inicio:end- idx_final);
 
 % Crear una máscara lógica que elimine las filas donde haya ceros
 mask = (tita_deg ~= 0) & (x_meas ~= 0);
@@ -97,7 +98,7 @@ T = table(t_meas, x_m, theta_const_rad*ones(size(t_meas)), ...
     'VariableNames', {'Tiempo_s','Posicion_m','Angulo_rad'});
 
 % Guardar en un archivo .txt separado por tabulaciones
-filename = 'mb8.txt';
+filename = 'mb2.txt';
 writetable(T, filename, 'Delimiter', '\t');
 
 fprintf('Datos exportados a %s\n', filename);

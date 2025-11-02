@@ -7,7 +7,7 @@ y_exp = out.posicion();
 % --- datos teóricos
 Num = 1811;
 Den = [1 35.58 622.2 1367 0]; %s^4 + 35.58 s^3 + 622.2 s^2 + 1367 s
-
+Den = [1 36.81 662.9 2030 0]; %s^4 + 36.81 s^3 + 662.9 s^2 + 2030 s
 kp = 3;
 ki = 0;
 kd = 0;
@@ -25,7 +25,7 @@ H1 = tf(Num, Den);
 H1_z = c2d(H1, Ts, 'tustin');
 
 % Lazo cerrado discreto
-H_cl = feedback(H1_z * C_z, 2);
+H_cl = feedback(H1_z * C_z, 4);
 
 % --- Simulación teórica
 t_final = 10;
@@ -40,12 +40,12 @@ t_exp = t_exp - t_exp(1);
 
 % --- exporto los datos
 datos_export = [t_exp, y_exp];          
-filename = 'kp_3_prueba_2.txt'; % Nombre del archivo
-%writematrix(datos_export, filename, 'Delimiter','tab');
+filename = 'kp_3_prueba_3.txt'; % Nombre del archivo
+writematrix(datos_export, filename, 'Delimiter','tab');
 
 % --- 🔧 Ajuste manual del offset temporal y de escala ---
-offset_tiempo = 1.1;   % <-- EDITÁ ESTE VALOR para alinear (en segundos)
-escala = 4.8;             % <-- EDITÁ ESTE VALOR para ajustar amplitud
+offset_tiempo = 1;   % <-- EDITÁ ESTE VALOR para alinear (en segundos)
+escala = 8;             % <-- EDITÁ ESTE VALOR para ajustar amplitud
 
 % Aplicar desplazamiento y escala
 t_imp_shift = t_imp + offset_tiempo;
