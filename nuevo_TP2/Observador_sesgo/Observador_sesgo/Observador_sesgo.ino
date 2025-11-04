@@ -30,9 +30,9 @@ float bias_accY = 0; // Bias del Acelerometro en Y
 
 int i = 0; int j = 0; int indice = 0;
 unsigned long tiempoInicio, tiempoFin, tiempoPrueban;
-float datos[] = {0,0,0,0};
+float datos[] = {0,0,0,0,0,0};
 float titas[] = {0,0,0,0,0};
-float entradaEscalon[] = {-15, 15}; // en grados
+float entradaEscalon[] = {-15,0, 15}; // en grados
 float tita_barra = 0, tita_servo_prev = 0, tita_servo = 0;
 float referencia = 15.85; //en cm 
 float error = 0, error_acum =0, error_ant = 0;
@@ -41,38 +41,42 @@ float uk = 0, Ts = 0.02;
 // init sensor
 float posicion = 0, tiempo_ping = 0; 
 float velocidadSonido = 29.287;
+float y_pos;    // medición de posición
+float y_vel;    // medición de velocidad (ruido + bias)
 
-//semana 9
-// Matriz A (2x2)
 
-float A_d[2][2] = {
-  {1, 0.02},
-  {-10.7660,  0.3392}
+// Matriz A
+
+float A_d[3][3] = {
+  {1, 0.02, 0 },
+  {-10.7660,  0.3392, 0},
+  {0 ,0, 1}
 };
 
-// Matriz B (2x1)
+// Matriz B 
 
-float B_d[2][1] = {
+float B_d[3][1] = {
   {0},
-  {3.6960}
+  {3.6960},
+  {0}
 };
-// Matriz C (1x2)
-float C_d[1][2] = {
-  {1, 0}
+// Matriz C 
+float C_d[2][3] = {
+  {1, 0, 0},
+  {0, 1,1}
 };
 
-// Matriz D (1x2)
-float D_d[1][2] = {
-  {0, 0}
-};
 
 // Matriz L (observer gain as column vector 2x1)
-//float L[2] = {0.9242, -5.1651};
-float L[2] = {1.3615, -2.7976};
+float L[3][2] = { 
+  {0.3517, -0.0173},
+  {-10.7651, -0.1695},
+  {-0.0555 , 1.0920} 
+};
 
 //estados
-float estados[] = {0,0}; // {tita , tita_punto}
-float estados_sig[] = {0,0}; // {tita_punto ; tita_puntopunto}
+float estados[] = {0,0,0}; // {tita , tita_punto, bias}
+float estados_sig[] = {0,0,0}; // {tita_punto ; tita_puntopunto,bias_punto}
 float u = 0, y = 0, y_estimado = 0; 
 
 NewPing sonar (PINTRG, PINECHO, MAXDISTANCE);
@@ -139,37 +143,47 @@ void loop() {
   
 
   // u es lo que le mandamos al servo
-  u = entradaEscalon[j%2] ;
+  u = entradaEscalon[j%3] ;
   t_us = 540 + (u+90)  * (2400 - 540) / 180;
   servo.writeMicroseconds(t_us);
 
-// ----- Calcular ŷk = Cd * x̂k + Dd * uk -----
-  y_estimado = C_d[0][0] * estados[0] + C_d[0][1] * estados[1] ;
 
-// ----- Calcular el error de observación -----
-  float e = y - y_estimado;
+  // ----- Estimación de la salida -----
+  float y1_est = estados[0];                        // x1_hat
+  float y2_est = estados[1] + estados[2];           // x2_hat + bias_hat
+  float tita_punto_medido = (g.gyro.x - bias_gyroX)*(-180/PI);
 
-//----- Calcular x̂(k+1) = Ad*x̂ + L*e + Bd*u -----
-  estados_sig[0] = A_d[0][0]*estados[0] + A_d[0][1]*estados[1] + B_d[0][0]*(u) + L[0]*e;
-  estados_sig[1] = A_d[1][0]*estados[0] + A_d[1][1]*estados[1] + B_d[1][0]*(u) + L[1]*e;
+  // y = [y_pos; y_velBias]
+  float e1 = y - y1_est;      // error de posición
+  float e2 = tita_punto_medido - y2_est;      // error de velocidad con bias
+  e2 = e2+20;
+  // ----- x̂(k+1) = A*x̂ + B*u + L*e -----
+  estados_sig[0] = A_d[0][0]*estados[0] + A_d[0][1]*estados[1] + B_d[0][0]*u + L[0][0]*e1 + L[0][1]*e2;
 
-// ----- Actualizar estado -----
+  estados_sig[1] = A_d[1][0]*estados[0] + A_d[1][1]*estados[1] + B_d[1][0]*u+ L[1][0]*e1 + L[1][1]*e2;
+
+  // Estado del sesgo (dinámica: bias_hat(k+1) = bias_hat + L3*e)
+  estados_sig[2] = estados[2] + L[2][0]*e1 + L[2][1]*e2;
+
+  // ----- Actualizar estados -----
   estados[0] = estados_sig[0];
   estados[1] = estados_sig[1];
+  estados[2] = estados_sig[2];
 
 
   datos[0] = estados[0];  //tita estimado
-  datos[1] =  estados[1]; // tita_punto estimado
-  datos[2] = tita_barra; // tita medida
-  datos[3] = (g.gyro.x - bias_gyroX)*(-180/PI) ; //tita_punto medido
+  datos[1] = estados[1]; // tita_punto estimado
+  datos[2] = estados[2];  // bias estimado
+  datos[3] = tita_barra; // tita medida
+  datos[4] = tita_punto_medido + 20; //tita_punto medido
+  datos[5] = 0;      //bias medido ?
 
-  
-  if(i%150 == 0){
+  if(i%200 == 0){
     j++;  
   }
 
   if(i%2 == 0){
-    matlab_send(datos,4);  
+    matlab_send(datos,6);  
   }
 
   tiempoFin = micros();
