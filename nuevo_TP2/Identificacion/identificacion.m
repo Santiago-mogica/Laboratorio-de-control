@@ -41,17 +41,23 @@ fprintf('dcgain(Gc_from_poles) = %.6g\n', dcgain(Gc_from_poles));
 
 % Simulaciones para comparar
 t = (0:length(y)-1)'*Ts;
+
 figure;
-plot(t, y, 'b', 'DisplayName','y medida'); hold on;
+hold on;
+grid on;
+box on;
 
-% 1) lsim con la entrada real (ejemplo: escalón de 15)
+% Señal medida
+plot(t, y, 'b', 'LineWidth', 1.5, 'DisplayName', 'y medida');
+
+% Simulación con la entrada real (por ejemplo, escalón de 15)
 y_sim_realinput = lsim(Gc_from_poles, x, t);
-plot(t, y_sim_realinput, 'r--', 'DisplayName','sim P (misma entrada)');
+plot(t, y_sim_realinput, 'r--', 'LineWidth', 1.5, 'DisplayName', 'sim P (misma entrada)');
 
-
-legend; grid on; xlabel('t [s]'); ylabel('Angulo barra (grados)');
-%title('Comparación: medición vs modelo');
-
+% Etiquetas y leyenda
+xlabel('t [s]', 'FontSize', 12);
+ylabel('Ángulo barra (grados)', 'FontSize', 12);
+legend('Location','best');
 
 figure;
 step(Gc_from_poles);

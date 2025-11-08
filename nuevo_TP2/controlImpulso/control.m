@@ -8,9 +8,10 @@ y_exp = out.posicion();
 Num = 1811;
 Den = [1 35.58 622.2 1367 0]; %s^4 + 35.58 s^3 + 622.2 s^2 + 1367 s
 Den = [1 36.81 662.9 2030 0]; %s^4 + 36.81 s^3 + 662.9 s^2 + 2030 s
-kp = 3;
-ki = 0;
-kd = 0;
+Den = [1 35.78 628.7 1474 0];%s^4 + 35.78 s^3 + 628.7 s^2 + 1474 s // m/b 0.3653
+kp = 1.35;
+ki = 0.0;
+kd = 0.0004;
 Ts = 0.02;
 
 s = tf('s');
@@ -44,8 +45,8 @@ filename = 'kp_3_prueba_3.txt'; % Nombre del archivo
 writematrix(datos_export, filename, 'Delimiter','tab');
 
 % --- 🔧 Ajuste manual del offset temporal y de escala ---
-offset_tiempo = 1;   % <-- EDITÁ ESTE VALOR para alinear (en segundos)
-escala = 8;             % <-- EDITÁ ESTE VALOR para ajustar amplitud
+offset_tiempo = 0.8;   % <-- EDITÁ ESTE VALOR para alinear (en segundos)
+escala = 15;             % <-- EDITÁ ESTE VALOR para ajustar amplitud
 
 % Aplicar desplazamiento y escala
 t_imp_shift = t_imp + offset_tiempo;

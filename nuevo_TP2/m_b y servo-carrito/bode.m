@@ -8,7 +8,7 @@ optionss.PhaseMatchingFreq=1;
 optionss.Grid='on';
 
 %%Análisis de la transferencia del sistema %antes era 2.54 = 1/0.393
-b_m = 1/0.2652;
+b_m = 1/0.3653;
 
 A = [  0      1        0       0;
        0    -b_m     9.8     0;

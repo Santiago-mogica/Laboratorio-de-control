@@ -128,7 +128,7 @@ void loop() {
 
   // === control bilineal
 
-  kp = 1.8; ki =0; kd = 0.002;
+  kp = 1.2; ki =0; kd = 0.0003;
 
   ik = ik_ant + (Ts*error/2) + (Ts*error_ant/2);
   dk = 2*(error - error_ant)/Ts - dk_ant;

@@ -16,11 +16,23 @@ entradaEscalon(1) = 10;
 
 % --- modelo teórico ---
 Num = 1960;
-Den = [1 59.7 759.1 1559 0];  % s^4 ... s^0
-C_P = 1.8;
+Den = [1 35.78 628.7 1474 0];%s^4 + 35.78 s^3 + 628.7 s^2 + 1474 s // m/b 0.3653
+
+kp = 2; ki = 0; kd = 0.0004; Ts = 0.02;
+s = tf('s');
+z = tf('z', Ts);
+% Controlador PID bilineal (Tustin)
+C_s = kp + ki/s + kd*s;
+C_z = c2d(C_s, Ts, 'tustin');
+
 H1 = tf(Num, Den);
-H_cl = H1 * C_P;  % Lazo cerrado
-H_cl = feedback(H_cl, 1);
+% Planta discreta
+H1 = tf(Num, Den);
+H1_z = c2d(H1, Ts, 'tustin');
+
+% Lazo cerrado discreto
+H_cl = feedback(H1_z * C_z, 1);
+
 
 % Usar el vector de tiempo experimental para la simulación
 % lsim admite tiempos no uniformes; así la salida teórica quedará alineada
@@ -62,8 +74,10 @@ legend('Location','best');
 grid on;
 xlabel('t [s]','FontSize',12);
 ylabel('Posición / referencia','FontSize',12);
-title('Referencia escalón vs medición','FontSize',13,'FontWeight','bold');
+%title('Referencia escalón vs medición','FontSize',13,'FontWeight','bold');
 set(gca,'FontSize',11,'Box','off');
+%xlim([2.5 max(t)])
+
 
 % --- exporto los datos alineados (t, medición alineada, referencia original) ---
 % Guardar en unidades originales: si convertimos r a metros para simular,
