@@ -34,7 +34,7 @@ float datos[] = {0,0,0,0,0,0,0,0};
 float titas[] = {0,0,0,0,0};
 float entradaEscalon[] = {-5, 5}; // en grados
 float tita_barra = 0, tita_servo_prev = 0, tita_servo = 0;
-float referencia = 15.85; //en cm 
+float referencia_fija = 15.55; //en cm 
 float error = 0, error_acum =0, error_ant = 0;
 float kp = 0, ki =0, kd =0, k0, T0;
 float uk = 0, Ts = 0.02;
@@ -78,6 +78,13 @@ float L[4][2] = {
   {  0.0672 ,   0.5643 },
   {  -2.6331 , -17.6447 }
 };
+
+
+//float K[4] = { 1.327624, 0.71637, -0.174823, 0.036391 }; 
+float K[4] = { 1.327624, 0.71637, -0.174823, 0.046391 }; 
+
+float F = 1.3276;
+
 
 //estados
 float estados[] = {0,0,0,0}; // {posicion, posicion_punto ,tita , tita_punto}
@@ -137,7 +144,7 @@ void loop() {
   tiempoInicio = micros();
 
   tiempo_ping = sonar.ping(35) ;
-  posicion = tiempo_ping / (velocidadSonido*2); //en cm  
+  posicion = (tiempo_ping / (velocidadSonido*2)) - referencia_fija; //en cm  
   y1 = posicion;
   velocidad_carrito = (posicion-posicion_anterior)/TS;
   posicion_anterior = posicion;
@@ -154,10 +161,27 @@ void loop() {
   y2 = tita_barra;
   
 
-  // u es lo que le mandamos al servo
-  u = entradaEscalon[j%2] ;
-  t_us = 570 + (u+90)  * (2400 - 540) / 180;
-  servo.writeMicroseconds(t_us);
+// ========= CONTROLADOR ==========
+float u_calc = 0;
+
+// K es un vector de 4 elementos, estados tambien.
+// Esto produce un solo numero u.
+for (int idx = 0; idx < 4; idx++) {
+    u_calc += K[idx] * estados[idx]; // 
+}
+
+float ref = 8;
+u = -u_calc + F*ref;  
+//Serial.println(u);
+
+// Saturación
+float umax = 30.0;
+if (u > umax) u = umax;
+if (u < -umax) u = -umax;
+
+t_us = 570 + (u+90)  * (2400 - 540) / 180;
+servo.writeMicroseconds(t_us);
+
 
 /// ----- Calcular ŷ(k) = C_d * x̂(k) -----
 float y1_est = C_d[0][0]*estados[0] + C_d[0][1]*estados[1] + C_d[0][2]*estados[2] + C_d[0][3]*estados[3];
@@ -168,7 +192,7 @@ float e1 = y1 - y1_est;
 float e2 = y2 - y2_est;
 
 // ----- Calcular x̂(k+1) = A_d*x̂ + B_d*u + L*e -----
-//float estados_sig[4];
+float estados_sig[4];
 
 // Posicion
 estados_sig[0] = A_d[0][0]*estados[0] + A_d[0][1]*estados[1] + A_d[0][2]*estados[2] + A_d[0][3]*estados[3]

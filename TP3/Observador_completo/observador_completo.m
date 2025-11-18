@@ -32,17 +32,21 @@ tf(sys)
 Ts = 0.02;
 
 %polos deseados para el observador (más rápidos que los del sistema)
-p_obs = 4.5* eig(A);
+autoval_A = eig(A);
+autoval_A(1) = -2;
+
+
+p_obs = 4.5* autoval_A;
 
 I = eye(4);
 A_d = I + A*Ts
 B_d = B*Ts
 C_d =C;
 
-p_obs_d = exp(p_obs * Ts)
+p_obs_d = exp(p_obs * Ts);
 
 %ganancia del observador L
-L = place(A_d', C_d', p_obs_d)';
+L = place(A_d', C_d', p_obs_d)'
 
 O = obsv(A,C);
 rank(O)   % debe ser 4 para que el observador sea posible
