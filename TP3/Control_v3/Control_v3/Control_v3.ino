@@ -30,7 +30,7 @@ float bias_accY = 0; // Bias del Acelerometro en Y
 
 int i = 0; int j = 0; int indice = 0;
 unsigned long tiempoInicio, tiempoFin, tiempoPrueban;
-float datos[] = {0,0,0,0,0,0,0,0};
+float datos[] = {0,0,0,0,0,0,0,0,0};
 float titas[] = {0,0,0,0,0};
 float entradaEscalon[] = {-5, 5}; // en grados
 float tita_barra = 0, tita_servo_prev = 0, tita_servo = 0;
@@ -147,7 +147,9 @@ void loop() {
   tiempo_ping = sonar.ping(35) ;
   posicion = (tiempo_ping / (velocidadSonido*2)) - referencia_fija; //en cm  
   y1 = posicion;
-  velocidad_carrito = (posicion-posicion_anterior)/TS;
+  //velocidad_carrito = (posicion-posicion_anterior)/TS;
+  velocidad_carrito = 0.3 * ((posicion - posicion_anterior)/TS) + 
+                      0.7 * velocidad_carrito;
   posicion_anterior = posicion;
 
   sensors_event_t a, g, temp;
@@ -193,7 +195,7 @@ float e1 = y1 - y1_est;
 float e2 = y2 - y2_est;
 
 // ----- Calcular x̂(k+1) = A_d*x̂ + B_d*u + L*e -----
-float estados_sig[4];
+float estados_sig[5];
 
 // Posicion
 estados_sig[0] = A_d[0][0]*estados[0] + A_d[0][1]*estados[1] + A_d[0][2]*estados[2] + A_d[0][3]*estados[3]
@@ -217,7 +219,7 @@ estados_sig[3] = A_d[3][0]*estados[0] + A_d[3][1]*estados[1] + A_d[3][2]*estados
 
 // Integrador
 estados_sig[4] = A_d[4][0]*estados[0] + A_d[4][1]*estados[1] + A_d[4][2]*estados[2] + A_d[4][3]*estados[3]
-               + B_d[4][0]*u;
+               + A_d[4][4]*estados[4] + B_d[4][0]*u;
 
 
 // ----- Actualizar estado -----
@@ -236,6 +238,7 @@ datos[4] = posicion;                //Posicion medido
 datos[5] = velocidad_carrito; //Posicion_punto medido
 datos[6] = y2;                //tita medido
 datos[7] = (g.gyro.x - bias_gyroX)*(-180/PI); //tita_punto medido
+datos[8] = u;
 
   
   if(i%15 == 0){
@@ -243,7 +246,7 @@ datos[7] = (g.gyro.x - bias_gyroX)*(-180/PI); //tita_punto medido
   }
 
   if(i%2 == 0){
-    matlab_send(datos,8);  
+    matlab_send(datos,9);  
   }
 
   tiempoFin = micros();
