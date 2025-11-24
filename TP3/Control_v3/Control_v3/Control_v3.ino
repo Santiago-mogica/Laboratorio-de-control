@@ -61,10 +61,10 @@ float B_d[5][1] = {
   { 0        }
 };
 
-// Matriz C_d (2x4)
-float C_d[2][4] = {
-  { 1.0, 0.0, 0.0, 0.0 },
-  { 0.0, 0.0, 1.0, 0.0 }
+// C_d 2×5
+float C_d[2][5] = {
+  {1, 0, 0, 0, 0},
+  {0, 0, 1, 0, 0}
 };
 
 // Matriz D_d (2x1)
@@ -83,9 +83,7 @@ float L[4][2] = {
 
 
 //float K[4] = { 1.327624, 0.71637, -0.174823, 0.036391 }; 
-float K[5] = { 1.327624, 0.71637, -0.174823, 0.046391, -13.257090}; 
-
-
+float K[5] = { 1.327624, 0.71637, -0.174823, 0.036391 , -0.95}; 
 
 //estados
 float estados[] = {0,0,0,0,0}; // {posicion, posicion_punto ,tita , tita_punto, integrador}
@@ -173,7 +171,7 @@ for (int idx = 0; idx < 5; idx++) {
     u_calc += K[idx] * estados[idx]; // 
 }
 
-float ref = -8;
+float ref = 0;
 u = -u_calc + ref;  
 //Serial.println(u);
 
@@ -187,8 +185,8 @@ servo.writeMicroseconds(t_us);
 
 
 /// ----- Calcular ŷ(k) = C_d * x̂(k) -----
-float y1_est = C_d[0][0]*estados[0] + C_d[0][1]*estados[1] + C_d[0][2]*estados[2] + C_d[0][3]*estados[3];
-float y2_est = C_d[1][0]*estados[0] + C_d[1][1]*estados[1] + C_d[1][2]*estados[2] + C_d[1][3]*estados[3];
+float y1_est = C_d[0][0]*estados[0] + C_d[0][1]*estados[1] + C_d[0][2]*estados[2] + C_d[0][3]*estados[3] + C_d[0][4]*estados[4];
+float y2_est = C_d[1][0]*estados[0] + C_d[1][1]*estados[1] + C_d[1][2]*estados[2] + C_d[1][3]*estados[3] + C_d[1][4]*estados[4];
 
 // ----- Calcular errores de observación -----
 float e1 = y1 - y1_est;

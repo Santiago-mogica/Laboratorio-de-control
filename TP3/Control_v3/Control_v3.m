@@ -49,24 +49,26 @@ disp("Ee = "); disp(Ee);
 
 % Elegí polos deseados en discreto (ejemplo)
 
-poles_d = [0.4804 0.7360 0.8838 0.9759 0.8];   % tantos polos como nx+ny
+% poles_d = [0.4804 0.7360 0.8838 0.9759 0.9];   % tantos polos como nx+ny
 K = [1.327624, 0.71637, -0.174823, 0.046391];
+% poles_d = [0.4804 0.7360 0.8838 0.9759 0.9];   % tantos polos como nx+ny
+poles_d = [0.85 0.90 0.93 0.95 0.97];
 
 % Control por asignación de polos:
 Ke = place(Ae, Be, poles_d)
+disp(' Autovalores lazo cerrado (PLACE):')
+disp(eig(Ae - Be*Ke))
 
 K = Ke(1:nx);        % parte correspondiente a estados
 H = Ke(nx+1:end);    % parte correspondiente al integrador
 
-disp(' Autovalores lazo cerrado (A MANO):')
-disp(eig(Ae - Be*Ke))
 % ====== PRINTS PARA ARDUINO ======
 
 fprintf("\n--- COPIAR A ARDUINO ---\n");
 
 fprintf("\n// K\n");
-fprintf("float K[%d] = {", nx);
-fprintf("%f, ", K);
+fprintf("float K[%d] = {", nx+ny);
+fprintf("%f, ", Ke);
 fprintf("};\n");
 
 fprintf("\n// H\n");
@@ -114,7 +116,7 @@ for i = 1:size(Be,1)
     end
 end
 
-`
+
 %%
 posicion_ve = out.pos_ve();
 posicion_med = out.pos_med();
@@ -132,6 +134,25 @@ u = out.u();
 t_exp = out.tout();
 % --- exporto los datos
 % datos_export = [t_exp, posicion_ve,posicion_med, velocidad_carro_ve,velocidad_carro_med,tita_ve, tita_med ,vel_angular_ve,vel_angular_med, u];          
-% filename = 'control_v3_1.txt'; % Nombre del archivo
+% filename = 'control_v3_k0.5_estado_estacionario.txt'; % Nombre del archivo
 % writematrix(datos_export, filename, 'Delimiter','tab');
 
+figure;
+
+% --- Subplot 1: Posición medida vs estimada ---
+subplot(2,1,1);
+plot(t_exp, posicion_med, 'LineWidth', 1.5); hold on;
+plot(t_exp, posicion_ve,  'LineWidth', 1.5);
+grid on;
+xlabel('Tiempo [s]');
+ylabel('Posición [m]');
+title('Posición medida vs estimada');
+legend('Medida','Estimada (VE)');
+
+% --- Subplot 2: Acción de control ---
+subplot(2,1,2);
+plot(t_exp, u, 'LineWidth', 1.5);
+grid on;
+xlabel('Tiempo [s]');
+ylabel('u [a.u.]');
+title('Acción de control');
