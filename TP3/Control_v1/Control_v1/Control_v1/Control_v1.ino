@@ -241,9 +241,9 @@ datos[8] = u;
     j++;  
   }
 
-  if(i%2 == 0){
-    matlab_send(datos,9);  
-  }
+  //if(i%2 == 0){
+  matlab_send(datos,9);  
+  //}
 
   tiempoFin = micros();
   unsigned long tiempoTranscurrido = tiempoFin - tiempoInicio;

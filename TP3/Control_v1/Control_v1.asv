@@ -1,0 +1,154 @@
+%% ================================
+%    CALCULO DE GANANCIA K
+%    PARA BALL & BEAM DISCRETO
+% =================================
+
+ clc;
+
+%% --- Matrices discretas del modelo ---
+Ad = [ 1.0000   0.02     0.0       0.0;
+       0.0     0.9453   0.196     0.0;
+       0.0      0.0      1.0      0.02;
+       0.0      0.0    -10.7660   0.3392 ];
+
+Bd = [ 0.0;
+       0.0;
+       0.0;
+       3.696 ];
+
+%% ================================
+%       METODO 1: PLACE
+% =================================
+
+% Polos discretos deseados (elegir cómo querés la dinámica)
+poles_discretos = [0.89 0.85 0.81 0.6];
+
+K_place = place(Ad, Bd, poles_discretos);
+
+disp('------------------------------------')
+disp(' Ganancia K calculada con PLACE:')
+disp(K_place)
+
+disp(' Autovalores lazo cerrado (PLACE):')
+disp(eig(Ad - Bd*K_place))
+
+%% ================================
+%       METODO 2: LQR DISCRETO
+% =================================
+
+% Ajustar pesos según prioridad
+Q = diag([100, 1, 50, 1]);   % ejemplo: control fuerte sobre p y theta
+R = 1;
+
+[K_lqr, S, e_lqr] = dlqr(Ad, Bd, Q, R);
+
+disp('------------------------------------')
+disp(' Ganancia K calculada con DLQR:')
+disp(K_lqr)
+
+disp(' Autovalores lazo cerrado (DLQR):')
+disp(e_lqr)
+
+%% ================================
+%       COPIAR A ARDUINO
+% =================================
+
+fprintf('\n\n==== Copiar a Arduino (PLACE) ====\n');
+fprintf('float K[4] = { %.6f, %.6f, %.6f, %.6f }; \n', K_place);
+
+fprintf('\n==== Copiar a Arduino (DLQR) ====\n');
+fprintf('float K[4] = { %.6f, %.6f, %.6f, %.6f }; \n', K_lqr);
+
+%===============================
+k_a_mano = [1.327624, 0.71637, -0.174823, 0.056391];
+disp('------------------------------------')
+disp(' Autovalores lazo cerrado (A MANO):')
+disp(eig(Ad - Bd*k_a_mano))
+
+%%
+% posicion_ve = out.pos_ve();
+% posicion_med = out.pos_med();
+% 
+% velocidad_carro_ve = out.vel_carro_ve();
+% velocidad_carro_med = out.vel_carro_med();
+% 
+% tita_ve = out.tita_ve();
+% tita_med = out.tita_med();
+% 
+% vel_angular_ve = out.vel_angular_ve();
+% vel_angular_med = out.vel_angular_med();
+% 
+% u = out.u();
+% t_exp = out.tout();
+% --- exporto los datos
+% datos_export = [t_exp, posicion_ve,posicion_med, velocidad_carro_ve,velocidad_carro_med,tita_ve, tita_med ,vel_angular_ve,vel_angular_med, u];          
+% filename = 'control_v1_3.txt'; % Nombre del archivo
+% writematrix(datos_export, filename, 'Delimiter','tab');
+
+%%
+%% ================================
+%   COMPARATIVA PLANTA REAL vs
+%   PLANTA SIMULADA TEÓRICA
+% ================================
+
+%% --- 1. Cargar datos reales desde archivo ---
+
+filename = 'control_v1_3.txt';
+datos = readmatrix(filename);
+
+t_exp          = datos(:,1);
+pos_ve_real    = datos(:,2);
+pos_med_real   = datos(:,3);
+vel_ve_real    = datos(:,4);
+vel_med_real   = datos(:,5);
+tita_ve_real   = datos(:,6);
+tita_med_real  = datos(:,7);
+velang_ve_real = datos(:,8);
+velang_med_real= datos(:,9);
+u_real         = datos(:,10);
+
+Ts = t_exp(2) - t_exp(1);   % tiempo de muestreo estimado
+
+%% --- 2. Matrices del modelo discreto ---
+Ad = [ 1.0000   0.02     0.0       0.0;
+       0.0     0.9453   0.196     0.0;
+       0.0      0.0      1.0      0.02;
+       0.0      0.0    -10.7660   0.3392 ];
+
+Bd = [ 0.0;
+       0.0;
+       0.0;
+       3.696 ];
+
+
+nx = size(Ad,1);
+
+%% --- 3. Simulación del modelo usando u(k) real ---
+
+x_sim = zeros(nx, length(t_exp));   % estados simulados
+x0 = [pos_med_real(1); vel_med_real(1); tita_med_real(1); velang_med_real(1)];
+
+x_sim(:,1) = x0;
+
+for k = 1:length(t_exp)-1
+    x_sim(:,k+1) = Ad * x_sim(:,k) + Bd * u_real(k);
+end
+
+pos_sim  = x_sim(1,:); % posición simulada
+
+%% --- 4. Graficar comparativa ---
+
+figure;
+
+subplot(2,1,1);
+plot(t_exp, pos_med_real, 'LineWidth',1.5); hold on;
+plot(t_exp, pos_ve_real,  'LineWidth',1.5);
+plot(t_exp, pos_sim,      'LineWidth',1.6);
+grid on; xlabel('Tiempo [s]'); ylabel('Posición [m]');
+title('Comparativa: planta real vs planta simulada');
+legend('Posición medida real', 'Posición estimada VE real', 'Posición simulada (modelo Ad-Bd)');
+
+subplot(2,1,2);
+plot(t_exp, u_real, 'LineWidth',1.5);
+grid on; xlabel('Tiempo [s]'); ylabel('u');
+title('Acción de control real que se usó para ambas plantas');
