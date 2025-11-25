@@ -235,7 +235,7 @@ datos[4] = posicion;                //Posicion medido
 datos[5] = velocidad_carrito; //Posicion_punto medido
 datos[6] = y2;                //tita medido
 datos[7] = (g.gyro.x - bias_gyroX)*(-180/PI); //tita_punto medido
-datos[8] = u;
+datos[8] = i;
   
   if(i%15 == 0){
     j++;  
@@ -245,13 +245,16 @@ datos[8] = u;
   matlab_send(datos,9);  
   //}
 
+  i++;
   tiempoFin = micros();
   unsigned long tiempoTranscurrido = tiempoFin - tiempoInicio;
   if(tiempoTranscurrido < 20000) {  // 20ms in microseconds
-    delayMicroseconds((5000 - tiempoTranscurrido));  
-    delay(15);
+    delayMicroseconds((5000 - tiempoTranscurrido/2));  
+    delayMicroseconds((5000 - tiempoTranscurrido/2));  
+    delayMicroseconds(5000);
+    delayMicroseconds(5000);
+  
   }
-  i++;
 
   //float tiempoFin2 = micros();
   //unsigned long tiempoTranscurrido2 = tiempoFin2 - tiempoInicio;
@@ -261,8 +264,8 @@ datos[8] = u;
 
 void matlab_send(float* vector, int size) {
     Serial.write("abcd"); 
-    for (int j = 0; j < size; j++) {
-        byte* b = (byte*)&vector[j];
+    for (int idx = 0; idx < size; idx++) {
+        byte* b = (byte*)&vector[idx];
         Serial.write(b, sizeof(float));  // More explicit and efficient
     }
 }
