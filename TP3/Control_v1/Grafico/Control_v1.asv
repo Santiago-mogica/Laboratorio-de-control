@@ -1,0 +1,111 @@
+clc;
+
+
+% -- DATOS EXPERIMENTALES
+t_exp = out.tout();
+y_exp = out.posicion();
+
+
+% -- DATOS DE TU SISTEMA (teóricos)
+
+Num = 1906;
+Den = [1 39.1 623.2 1347 0];
+Ts = 0.02;
+
+s = tf('s');
+z = tf('z', Ts);
+
+
+% -- MATRICES DEL CONTROLADOR (pegá las tuyas acá)
+
+% A_d = [...];
+% B_d = [...];
+% C_d = [...];
+% K   = [...];
+% L   = [...];
+
+% si tu salida es solo posición:
+% C_d = [1 0 0 0;
+%        0 0 1 0];
+
+% referencia
+r = 1;   % escalón a 1 (si querés cambiarlo, cambialo aquí)
+
+
+% --- SIMULACIÓN DEL CONTROLADOR + OBSERVADOR (MISMO CÓDIGO QUE ARDUINO)
+
+
+t_final = 10;
+t = 0:Ts:t_final; 
+N = length(t);
+
+x_hat = zeros(4,1);        % estado estimado
+x_hat_hist = zeros(4,N);
+u_hist = zeros(1,N);
+y_ctrl_hist = zeros(1,N);
+
+for k = 1:N
+    % salida estimada
+    y_est = C_d * x_hat;          % 2x1
+    
+    % error de observación con salida REAL del modelo continuo
+    % convertimos la salida real del modelo en este loop:
+    y_real = y_est;  % si querés meter la planta real, la agrego
+    
+    % calculamos error
+    e = y_real - y_est;           % 2x1 (por ahora da 0 si no ponés planta)
+    
+    % control
+    u = -K * x_hat + r;
+    u_hist(k) = u;
+    
+    % actualización del observador (idéntica a Arduino)
+    x_hat = A_d*x_hat + B_d*u + L*e;
+    
+    % guardar
+    x_hat_hist(:,k) = x_hat;
+    y_ctrl_hist(k)  = x_hat(1);   % posición estimada (estado 1)
+end
+
+%% ========================================================================
+%  SIGUE TU CÓDIGO DE COMPARACIÓN CON LA RESPUESTA TEÓRICA
+% ========================================================================
+
+% Planta discretizada
+H1 = tf(Num, Den);
+H1_z = c2d(H1, Ts, 'tustin');
+
+% Necesitamos TF del controlador C(z)
+% El controlador del observador-estado no es una TF simple,
+% así que generamos la señal usando la simulación anterior:
+% y_ctrl_hist = salida del controlador
+
+% Para que tu comparación siga funcionando:
+y_ctrl = y_ctrl_hist(:);
+
+% Preparar datos experimentales
+idx = 4;
+t_exp = t_exp(idx:end);
+y_exp = y_exp(idx:end);
+t_exp = t_exp - t_exp(1);
+
+% Ajustes
+offset_tiempo = 0.75;
+escala = 7;
+
+% Interpolamos la respuesta controlada sobre tiempos experimentales
+t_ctrl_shift = t + offset_tiempo;
+y_ctrl_shift = escala * y_ctrl;
+y_ctrl_on_texp = interp1(t_ctrl_shift, y_ctrl_shift, t_exp, 'linear', 0);
+
+%% ========================================================================
+%  GRÁFICAS
+% ========================================================================
+figure('Color','w','Position',[200 200 800 420]);
+plot(t_exp, y_exp, 'Color', [0.35,0.70,0.90], 'LineWidth',1.5); hold on;
+plot(t_exp, y_ctrl_on_texp, 'Color', [0.47,0.67,0.19], 'LineWidth',1.8);
+legend('Medición','Controlador Simulado', 'Location','best');
+grid on;
+xlabel('t [s]', 'FontSize', 12);
+ylabel('Posición', 'FontSize', 12);
+set(gca, 'FontSize', 11, 'Box','off');
