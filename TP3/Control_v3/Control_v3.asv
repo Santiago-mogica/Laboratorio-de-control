@@ -61,7 +61,7 @@ eig(Ac)                % polos continuos
 %  -16.5200 +16.2908i
 %  -16.5200 -16.2908i
 
-poles_c = [-4, -2, -12, -9, -3.5];
+poles_c = [-2, -4, -17+17i, -17-19i, -3];
 
 
 
@@ -69,15 +69,15 @@ poles_c = [-4, -2, -12, -9, -3.5];
 
 
 %poles_d = [0.6236, 0.7536, 0.8974, 0.97, 0.98];   % tantos polos como nx+ny
-poles_d =exp(poles_c * Ts);
+poles_d =exp(poles_c * Ts)
 % Control por asignación de polos:
-Ke = place(Ae, Be, poles_d)*.8
+Ke = place(Ae, Be, poles_d)
 disp(' Autovalores lazo cerrado (PLACE):')
 disp(eig(Ae - Be*Ke))
 
 %K = [ 1.94, 0.871637, -0.2, 0.02 -1.5]; 
 K = [ 2.03534071, 0.90801508, -0.19107170, 0.01730844 -1.70]; 
-K = [1.86693309, 0.82960109, -1.0598083267, -0.04326790 -1.6098888385];
+K = [-270.8133   -89.0135  1.1193    0.0354 205.7618];
 disp(' Autovalores lazo cerrado (A mano):')
 disp(eig(Ae - Be*K))
 
@@ -111,25 +111,24 @@ fprintf("float H = %.8f; \n", H);
 
 
 %%
-posicion_ve = out.pos_ve();
-posicion_med = out.pos_med();
-
-velocidad_carro_ve = out.vel_carro_ve();
-velocidad_carro_med = out.vel_carro_med();
-
-tita_ve = out.tita_ve();
-tita_med = out.tita_med();
-
-vel_angular_ve = out.vel_angular_ve();
-vel_angular_med = out.vel_angular_med();
-
-u = out.u();
-t_exp = out.tout();
-
-% % --- exporto los datos
-datos_export = [t_exp, posicion_ve,posicion_med, velocidad_carro_ve,velocidad_carro_med,tita_ve, tita_med ,vel_angular_ve,vel_angular_med, u];          
-filename = 'control_v3_2.txt'; % Nombre del archivo
-writematrix(datos_export, filename, 'Delimiter','tab');
+% posicion_ve = out.pos_ve();
+% posicion_med = out.pos_med();
+% 
+% velocidad_carro_ve = out.vel_carro_ve();
+% velocidad_carro_med = out.vel_carro_med();
+% 
+% tita_ve = out.tita_ve();
+% tita_med = out.tita_med();
+% 
+% vel_angular_ve = out.vel_angular_ve();
+% vel_angular_med = out.vel_angular_med();
+% 
+% u = out.u();
+% t_exp = out.tout();
+% --- exporto los datos
+% datos_export = [t_exp, posicion_ve,posicion_med, velocidad_carro_ve,velocidad_carro_med,tita_ve, tita_med ,vel_angular_ve,vel_angular_med, u];          
+% filename = 'control_v3_k0.5_estado_estacionario.txt'; % Nombre del archivo
+% writematrix(datos_export, filename, 'Delimiter','tab');
 
 % figure;
 % 

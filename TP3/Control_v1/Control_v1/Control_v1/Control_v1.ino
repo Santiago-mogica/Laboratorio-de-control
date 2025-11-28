@@ -249,9 +249,7 @@ datos[8] = i;
   tiempoFin = micros();
   unsigned long tiempoTranscurrido = tiempoFin - tiempoInicio;
   if(tiempoTranscurrido < 20000) {  // 20ms in microseconds
-    delayMicroseconds((5000 - tiempoTranscurrido/2));  
-    delayMicroseconds((5000 - tiempoTranscurrido/2));  
-    delayMicroseconds(5000);
+    delayMicroseconds((15000 - tiempoTranscurrido));  
     delayMicroseconds(5000);
   
   }

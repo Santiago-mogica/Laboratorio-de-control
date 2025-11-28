@@ -139,11 +139,10 @@ void loop() {
   tiempo_ping = sonar.ping(35) ;
   posicion = (tiempo_ping / (velocidadSonido*2)) - referencia_fija; //en cm  
   y1 = posicion;
-  velocidad_carrito = 0.3 * ((posicion - posicion_anterior)/TS) + 
-                      0.7 * velocidad_carrito;
+  velocidad_carrito = (posicion-posicion_anterior)/TS;
+
   posicion_anterior = posicion;
 
-  //velocidad_carrito = (posicion-posicion_anterior)/TS;
 
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
@@ -210,19 +209,21 @@ datos[6] = y2;                //tita medido
 datos[7] = (g.gyro.x - bias_gyroX)*(-180/PI); //tita_punto medido
 datos[8] = u;
   
-  if(i%15 == 0){
+  if(i%20 == 0){
     j++;  
   }
 
   matlab_send(datos,9);  
 
+
+  i++;
   tiempoFin = micros();
   unsigned long tiempoTranscurrido = tiempoFin - tiempoInicio;
   if(tiempoTranscurrido < 20000) {  // 20ms in microseconds
-    delayMicroseconds((5000 - tiempoTranscurrido));  
-    delay(15);
+    delayMicroseconds((15000 - tiempoTranscurrido));  
+    delayMicroseconds(5000);
+  
   }
-  i++;
 
   //float tiempoFin2 = micros();
   //unsigned long tiempoTranscurrido2 = tiempoFin2 - tiempoInicio;
@@ -232,8 +233,8 @@ datos[8] = u;
 
 void matlab_send(float* vector, int size) {
     Serial.write("abcd"); 
-    for (int j = 0; j < size; j++) {
-        byte* b = (byte*)&vector[j];
+    for (int idx = 0; idx < size; idx++) {
+        byte* b = (byte*)&vector[idx];
         Serial.write(b, sizeof(float));  // More explicit and efficient
     }
 }

@@ -29,10 +29,9 @@ float bias_accY = 0; // Bias del Acelerometro en Y
 #define MAXDISTANCE 200
 
 int i = 0; int j = 0; int indice = 0;
-unsigned long tiempoInicio, tiempoFin, tiempoPrueban;
 float datos[] = {0,0,0,0,0,0,0,0,0};
 float titas[] = {0,0,0,0,0};
-float entradaEscalon[] = {-5, 5}; // en grados
+float entradaEscalon[] = {-7, 7}; // en grados
 float tita_barra = 0, tita_servo_prev = 0, tita_servo = 0;
 float referencia_fija = 15.55; //en cm 
 float error = 0, error_acum =0, error_ant = 0;
@@ -42,6 +41,14 @@ float uk = 0, Ts = 0.02;
 float posicion = 0, posicion_anterior = 0,velocidad_carrito =0, tiempo_ping = 0; 
 float velocidadSonido = 29.287;
 float y1 = 0, y2 = 0; 
+float ref = 0;
+unsigned long tiempoInicio, tiempoFin, tiempoPrueban;
+unsigned long tiempoUltimoCambio = 0;
+int indiceEscalon = 0;
+float intervaloEscalon = 8500; // 5 segundos en ms
+
+
+
 
 // Matriz A_d (4x4)
 float A_d[4][4] = {
@@ -143,6 +150,14 @@ void loop() {
 // lectura de las variables y filtro complementario
   tiempoInicio = micros();
 
+  // Cambiar referencia cada 5 segundos
+  unsigned long tiempoActual = millis();
+  if((tiempoActual - tiempoUltimoCambio) >= intervaloEscalon){
+    indiceEscalon = (indiceEscalon + 1) % 2;  // Alterna entre 0 y 1
+    ref = entradaEscalon[indiceEscalon];
+    tiempoUltimoCambio = tiempoActual;
+  }
+
   tiempo_ping = sonar.ping(35) ;
   posicion = (tiempo_ping / (velocidadSonido*2)) - referencia_fija; //en cm  
   y1 = posicion;
@@ -172,7 +187,6 @@ for (int idx = 0; idx < 4; idx++) {
     u_calc += K[idx] * estados[idx]; // 
 }
 
-float ref = -8;
 u = -u_calc + F*ref;  
 //Serial.println(u);
 
@@ -228,26 +242,27 @@ datos[1] = estados[1]; //Posicion_punto
 datos[2] = estados[2]; //tita 
 datos[3] = estados[3]; //tita_punto 
 datos[4] = posicion;                //Posicion medido
-datos[5] = velocidad_carrito; //Posicion_punto medido
+datos[5] = ref;//velocidad_carrito; //Posicion_punto medido
 datos[6] = y2;                //tita medido
 datos[7] = (g.gyro.x - bias_gyroX)*(-180/PI); //tita_punto medido
 datos[8] = u;
 
   
-  if(i%15 == 0){
+  if(i%100 == 0){
     j++;  
   }
 
   matlab_send(datos,9);  
   
 
+  i++;
   tiempoFin = micros();
   unsigned long tiempoTranscurrido = tiempoFin - tiempoInicio;
   if(tiempoTranscurrido < 20000) {  // 20ms in microseconds
-    delayMicroseconds((5000 - tiempoTranscurrido));  
-    delay(15);
+    delayMicroseconds((15000 - tiempoTranscurrido));  
+    delayMicroseconds(5000);
+  
   }
-  i++;
 
   //float tiempoFin2 = micros();
   //unsigned long tiempoTranscurrido2 = tiempoFin2 - tiempoInicio;
@@ -257,8 +272,8 @@ datos[8] = u;
 
 void matlab_send(float* vector, int size) {
     Serial.write("abcd"); 
-    for (int j = 0; j < size; j++) {
-        byte* b = (byte*)&vector[j];
+    for (int idx = 0; idx < size; idx++) {
+        byte* b = (byte*)&vector[idx];
         Serial.write(b, sizeof(float));  // More explicit and efficient
     }
 }

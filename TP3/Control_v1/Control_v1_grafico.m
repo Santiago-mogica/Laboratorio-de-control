@@ -3,14 +3,14 @@ clc;
 % -- datos experimentales
 % datos_export = [t_exp, posicion_ve,posicion_med, velocidad_carro_ve,
 %velocidad_carro_med,tita_ve, tita_med ,vel_angular_ve,vel_angular_med, u];
-filename = 'control_v1_1.txt';
+filename = 'control_v1_2.txt';
 T = readtable(filename, 'Delimiter', '\t');
 t_exp = T{:, 1};
 y_exp = T{:, 3};
 
 t_exp = t_exp;
 y_exp = y_exp ;
-idx_inicio = 87;
+idx_inicio = 30;
 t_exp = t_exp(idx_inicio:end);
 y_exp = y_exp(idx_inicio:end);
 t_exp = t_exp - t_exp(1);
@@ -29,7 +29,7 @@ z = tf('z', Ts);
 % -- modelo teorico del controlador
 
 A_d = [ 1.0000   0.02     0.0       0.0;
-       0.0     1.028   0.196     0.0;
+       0.0     1.020   0.196     0.0;
        0.0      0.0      1.0      0.02;
        0.0      0.0    -10.7660   0.3392 ];
 
@@ -74,7 +74,7 @@ G_2 = G(2,1) % tita
 
 %  Ajuste manual del offset temporal y de escala ---
 offset_tiempo = 0;        % <--  para alinear (en segundos)
-escala = 7;             % <--  para ajustar amplitud
+escala = -11.5;             % <--  para ajustar amplitud
 
 t_imp = t_imp + offset_tiempo;
 g_imp = g_imp * escala;
