@@ -34,21 +34,23 @@ disp("F calculado:")
 F
 
 %%
-posicion_ve = out.pos_ve();
-posicion_med = out.pos_med();
+% posicion_ve = out.pos_ve();
+% posicion_med = out.pos_med();
+% 
+% velocidad_carro_ve = out.vel_carro_ve();
+% velocidad_carro_med = out.vel_carro_med();
+% 
+% tita_ve = out.tita_ve();
+% tita_med = out.tita_med();
+% 
+% vel_angular_ve = out.vel_angular_ve();
+% vel_angular_med = out.vel_angular_med();
+% 
+% u = out.u();
+% t_exp = out.tout();
 
-velocidad_carro_ve = out.vel_carro_ve();
-velocidad_carro_med = out.vel_carro_med();
 
-tita_ve = out.tita_ve();
-tita_med = out.tita_med();
-
-vel_angular_ve = out.vel_angular_ve();
-vel_angular_med = out.vel_angular_med();
-
-u = out.u();
-t_exp = out.tout();
 % --- exporto los datos
- datos_export = [t_exp, posicion_ve,posicion_med, velocidad_carro_ve,velocidad_carro_med,tita_ve, tita_med ,vel_angular_ve,vel_angular_med, u];          
+%  datos_export = [t_exp, posicion_ve,posicion_med, velocidad_carro_ve,velocidad_carro_med,tita_ve, tita_med ,vel_angular_ve,vel_angular_med, u];          
 % filename = 'control_v2_3.txt'; % Nombre del archivo
 % writematrix(datos_export, filename, 'Delimiter','tab');

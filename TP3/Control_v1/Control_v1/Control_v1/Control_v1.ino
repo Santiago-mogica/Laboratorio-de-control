@@ -178,7 +178,6 @@ for (int idx = 0; idx < 4; idx++) {
     u_calc += K[idx] * estados[idx];
 }
 u = -u_calc;  
-//Serial.println(u);
 
 // Saturación
 float umax = 30.0;
