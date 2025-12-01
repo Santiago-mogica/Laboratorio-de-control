@@ -168,7 +168,7 @@ void loop() {
   unsigned long tiempoActual = millis();
   if((tiempoActual - tiempoUltimoCambio) >= intervaloEscalon){
     indiceEscalon = (indiceEscalon + 1) % 2;  // Alterna entre 0 y 1
-    //ref = entradaEscalon[indiceEscalon];
+    ref = entradaEscalon[indiceEscalon];
     tiempoUltimoCambio = tiempoActual;
   }
 
