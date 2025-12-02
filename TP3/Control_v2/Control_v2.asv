@@ -20,7 +20,8 @@ Bd = [ 0.0;
 % Si querés regular posición (y = x1):
 Cd=[ 1 0 0 0;
     0 0 1 0 ];
-
+Co = ctrb(Ad, Bd);
+rank_Co = rank(Co)
 %C = Cd(1,:); % <-- elegís la salida a unity gain
 K = [1.327624, 0.71637, -0.174823, 0.046391];
 disp(' Autovalores lazo cerrado (A mano):')
@@ -29,7 +30,7 @@ disp(eig(Ad - Bd*K))
 % Calculo de F
 % -------------------------
 M = Cd * ((eye(size(Ad)) - (Ad - Bd*K)) \ Bd);
-F = pinv(M); % Uso la pseudoinversa para obtener la mejor solución en mínimos cuadrados y evitar problemas de invertibilidad
+F = 1 / M;       % escalar
 
 disp("F calculado:")
 F

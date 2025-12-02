@@ -9,7 +9,7 @@ Adafruit_MPU6050 mpu;
 #define PINSDA SDA
 #define PI 3.1415926536
 #define TS 0.02
-#define alfa 0.40
+#define alfa 0.33
 
 // init servo
 #define CTEPROP 3.76666666666666
@@ -52,15 +52,13 @@ float y1_est = 0;
 float y2_est = 0;
 
 
-float A_d[5][5] = {
-  { 1.0000,  0.0200,  0.0000,  0.0000,  0.0000},
-  { 0.0000,  0.9453,  0.1960,  0.0000,  0.0000},
-  { 0.0000,  0.0000,  1.0000,  0.0200,  0.0000},
-  { 0.0000,  0.0000, -10.7660,  0.3392,  0.0000},
-  {-0.0200, -0.0000, -0.0000, -0.0000,  1.0000}
+float A_d[4][4] = {
+  { 1.0000,  0.0200,  0.0000,  0.0000},
+  { 0.0000,  0.9453,  0.1960,  0.0000},
+  { 0.0000,  0.0000,  1.0000,  0.0200},
+  { 0.0000,  0.0000, -10.7660,  0.3392}
 };
 
-// Matriz B_d (5x1)
 float B_d[4][1] = {
   { 0.0      },
   { 0.0      },
@@ -68,7 +66,6 @@ float B_d[4][1] = {
   { 3.696    }
 };
 
-// C_d 2×5
 float C_d[2][4] = {
   {1, 0, 0, 0},
   {0, 0, 1, 0}
@@ -88,23 +85,14 @@ float L[4][2] = {
   {  -2.6331 , -17.6447 }
 };
 
-//float K[4] = { 1.327624, 0.71637, -0.174823, 0.046391 }; 
 
+// Ganancia K   
+//float K[4] = {1.916693309, 0.72960109, -1.0598083267, -0.03326790};
+float K[4] = {1.916693309, 0.78960109, -1.0998083267, -0.03326790};
 
-// Ganancia H (integrador)
-//float H = -1.0; 
-
-
-
-//float K[4] = { 1.9443883505, 0.871637, -0.18, 0.01 };
-//float H = -1.90;
-
-
-// Ganancia K   -2.708133  -0.890135    1.1193            0.0354   
-float K[4] = {1.916693309, 0.72960109, -1.0598083267, -0.03326790};
-
-// Ganancia H (integrador) 2.057618
-float H = -1.8098888385; 
+// Ganancia H (integrador) 
+//float H = -1.8098888385; 
+float H = -1.7598888385; 
 
 
 
@@ -192,17 +180,12 @@ void loop() {
 
 // ========= CONTROLADOR ==========
 float u_calc = 0;
-
-// K es un vector de 4 elementos, estados tambien.
 // Esto produce un solo numero u.
 for (int idx = 0; idx < 4; idx++) {
     u_calc += K[idx] * estados[idx]; // 
 }
 q = q_ant + TS *(ref - y1_est);
 u = -u_calc - q*H;  
-//Serial.println(u);
-//datos[1] = u_calc; //Posicion_punto
-//datos[5] = q*H;   //Posicion_punto medido
 
 q_ant = q;
 // Saturación
