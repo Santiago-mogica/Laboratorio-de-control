@@ -51,23 +51,37 @@ p_obs_d = exp(p_obs * Ts);
 L = place(A_d', C_d', p_obs_d)'
 
 O = obsv(A,C);
-rank(O)   % Da 4, es observable
+rO = rank(O)   % Da 4, es observable
+
+disp(['rank(O) = ', num2str(rO)]);   % debe dar 4
+
+% Observabilidad midiendo sólo p
+Cp = [1 0 0 0];
+Op = obsv(A, Cp);
+rp = rank(Op);
+disp(['rank(Op) = ', num2str(rp)]);
+
+% Observabilidad midiendo sólo theta
+Cth = [0 0 1 0];
+Oth = obsv(A, Cth);
+rth = rank(Oth);
+disp(['rank(Oth) = ', num2str(rth)]);
 %%
-% posicion_ve = out.pos_ve();
-% posicion_med = out.pos_med();
-% 
-% velocidad_carro_ve = out.vel_carro_ve();
-% velocidad_carro_med = out.vel_carro_med();
-% 
-% tita_ve = out.tita_ve();
-% tita_med = out.tita_med();
-% 
-% vel_angular_ve = out.vel_angular_ve();
-% vel_angular_med = out.vel_angular_med();
-% 
-% u = out.u();
-% t_exp = out.tout();
-% --- exporto los datos
-% datos_export = [t_exp, posicion_ve,posicion_med, velocidad_carro_ve,velocidad_carro_med,tita_ve, tita_med ,vel_angular_ve,vel_angular_med, u];          
-% filename = 'mediciones_observador_sin_escalon.txt'; % Nombre del archivo
-% writematrix(datos_export, filename, 'Delimiter','tab');
+posicion_ve = out.pos_ve();
+posicion_med = out.pos_med();
+
+velocidad_carro_ve = out.vel_carro_ve();
+velocidad_carro_med = out.vel_carro_med();
+
+tita_ve = out.tita_ve();
+tita_med = out.tita_med();
+
+vel_angular_ve = out.vel_angular_ve();
+vel_angular_med = out.vel_angular_med();
+
+u = out.u();
+t_exp = out.tout();
+% % --- exporto los datos
+datos_export = [t_exp, posicion_ve,posicion_med, velocidad_carro_ve,velocidad_carro_med,tita_ve, tita_med ,vel_angular_ve,vel_angular_med, u];          
+filename = 'entrada2.txt'; % Nombre del archivo
+writematrix(datos_export, filename, 'Delimiter','tab');

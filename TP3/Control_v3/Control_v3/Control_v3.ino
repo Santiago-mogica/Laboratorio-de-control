@@ -9,7 +9,7 @@ Adafruit_MPU6050 mpu;
 #define PINSDA SDA
 #define PI 3.1415926536
 #define TS 0.02
-#define alfa 0.33
+#define alfa 0.23
 
 // init servo
 #define CTEPROP 3.76666666666666
