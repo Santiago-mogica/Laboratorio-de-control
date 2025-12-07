@@ -155,11 +155,10 @@ void loop() {
   
   y2 = tita_barra;
   
-
-  // u es lo que le mandamos al servo
-  //u = entradaEscalon[j%2] ;
+  // ----- Entrada del servo -----
+  u = entradaEscalon[j%2] ;
   t_us = 570 + (u+90)  * (2400 - 540) / 180;
-  //servo.writeMicroseconds(t_us);
+  servo.writeMicroseconds(t_us);
 
 /// ----- Calcular ŷ(k) = C_d * x̂(k) -----
 float y1_est = C_d[0][0]*estados[0] + C_d[0][1]*estados[1] + C_d[0][2]*estados[2] + C_d[0][3]*estados[3];
@@ -170,7 +169,6 @@ float e1 = y1 - y1_est;
 float e2 = y2 - y2_est;
 
 // ----- Calcular x̂(k+1) = A_d*x̂ + B_d*u + L*e -----
-//float estados_sig[4];
 
 // Posicion
 estados_sig[0] = A_d[0][0]*estados[0] + A_d[0][1]*estados[1] + A_d[0][2]*estados[2] + A_d[0][3]*estados[3]
@@ -207,7 +205,7 @@ datos[4] = posicion;                //Posicion medido
 datos[5] = velocidad_carrito; //Posicion_punto medido
 datos[6] = y2;                //tita medido
 datos[7] = (g.gyro.x - bias_gyroX)*(-180/PI); //tita_punto medido
-datos[8] = u;
+datos[8] = u;   // Entrada 
   
   if(i%20 == 0){
     j++;  

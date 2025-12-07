@@ -87,11 +87,9 @@ float L[4][2] = {
 
 
 // Ganancia K   
-//float K[4] = {1.916693309, 0.72960109, -1.0598083267, -0.03326790};
 float K[4] = {1.916693309, 0.78960109, -1.0998083267, -0.03326790};
 
 // Ganancia H (integrador) 
-//float H = -1.8098888385; 
 float H = -1.7598888385; 
 
 
@@ -152,7 +150,6 @@ void loop() {
 // lectura de las variables y filtro complementario
   tiempoInicio = micros();
 
-  // Cambiar referencia cada 5 segundos
   unsigned long tiempoActual = millis();
   if((tiempoActual - tiempoUltimoCambio) >= intervaloEscalon){
     indiceEscalon = (indiceEscalon + 1) % 2;  // Alterna entre 0 y 1
@@ -169,7 +166,7 @@ void loop() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
 
-  titas[0] += (g.gyro.x - bias_gyroX) *(180/PI) *TS;                               //tita_g
+  titas[0] += (g.gyro.x - bias_gyroX) *(180/PI) *TS;                               
   titas[1] =  atan2((a.acceleration.y - bias_accY), (a.acceleration.z))*(180/PI); 
   titas[2] = titas[3] + (g.gyro.x - bias_gyroX) *(180/PI) *TS; 
   titas[3] = ((alfa * titas[1]) + ((1-alfa) *titas[2]));
@@ -180,7 +177,6 @@ void loop() {
 
 // ========= CONTROLADOR ==========
 float u_calc = 0;
-// Esto produce un solo numero u.
 for (int idx = 0; idx < 4; idx++) {
     u_calc += K[idx] * estados[idx]; // 
 }
@@ -244,7 +240,7 @@ datos[4] = posicion;                //Posicion medido
 datos[5] = ref;//velocidad_carrito; //Posicion_punto medido
 datos[6] = y2;                //tita medido
 datos[7] = (g.gyro.x - bias_gyroX)*(-180/PI); //tita_punto medido
-datos[8] = u;
+datos[8] = u;   // Entrada 
 
   
   if(i%15 == 0){

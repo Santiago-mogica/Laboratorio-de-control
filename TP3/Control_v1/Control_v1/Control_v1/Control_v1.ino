@@ -80,7 +80,6 @@ float L[4][2] = {
 };
 
 
-//float K[4] = { 1.327624, 0.71637, -0.174823, 0.036391 }; 
 float K[4] = { 1.327624, 0.71637, -0.174823, 0.046391 }; 
 
 
@@ -134,8 +133,6 @@ void setup(void) {
   bias_gyroX = bias_gyroX/nbias; 
   bias_accY = bias_accY/nbias;
 
-
-
 }
 
 
@@ -147,9 +144,7 @@ void loop() {
   tiempo_ping = sonar.ping(35) ;
   posicion = (tiempo_ping / (velocidadSonido*2)) -referencia_fija; //en cm  
   y1 = posicion;
-  //velocidad_carrito = (posicion-posicion_anterior)/TS;
-  velocidad_carrito = 0.3 * ((posicion - posicion_anterior)/TS) + 
-                      0.7 * velocidad_carrito;
+  velocidad_carrito = (posicion-posicion_anterior)/TS;
   posicion_anterior = posicion;
 
   sensors_event_t a, g, temp;
@@ -164,23 +159,15 @@ void loop() {
   y2 = tita_barra;
   
 
-  // u es lo que le mandamos al servo
-  //u = entradaEscalon[j%2] ;
-  //t_us = 570 + (u+90)  * (2400 - 540) / 180;
-  //servo.writeMicroseconds(t_us);
-
 // ========= CONTROLADOR ==========
 float u_calc = 0;
-
-// K es un vector de 4 elementos, estados tambien.
-// Esto produce un solo numero u.
 for (int idx = 0; idx < 4; idx++) {
     u_calc += K[idx] * estados[idx];
 }
 u = -u_calc;  
 
 // Saturación
-float umax = 30.0;
+float umax = 32.0;
 if (u > umax) u = umax;
 if (u < -umax) u = -umax;
 
@@ -234,15 +221,13 @@ datos[4] = posicion;                //Posicion medido
 datos[5] = velocidad_carrito; //Posicion_punto medido
 datos[6] = y2;                //tita medido
 datos[7] = (g.gyro.x - bias_gyroX)*(-180/PI); //tita_punto medido
-datos[8] = i;
+datos[8] = u;   // Entrada 
   
   if(i%15 == 0){
     j++;  
   }
 
-  //if(i%2 == 0){
   matlab_send(datos,9);  
-  //}
 
   i++;
   tiempoFin = micros();

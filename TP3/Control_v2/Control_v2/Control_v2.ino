@@ -87,7 +87,6 @@ float L[4][2] = {
 };
 
 
-//float K[4] = { 1.327624, 0.71637, -0.174823, 0.036391 }; 
 float K[4] = { 1.327624, 0.71637, -0.174823, 0.046391 }; 
 
 float F = 1.3276;
@@ -150,10 +149,9 @@ void loop() {
 // lectura de las variables y filtro complementario
   tiempoInicio = micros();
 
-  // Cambiar referencia cada 5 segundos
   unsigned long tiempoActual = millis();
   if((tiempoActual - tiempoUltimoCambio) >= intervaloEscalon){
-    indiceEscalon = (indiceEscalon + 1) % 2;  // Alterna entre 0 y 1
+    indiceEscalon = (indiceEscalon + 1) % 2;  
     ref = entradaEscalon[indiceEscalon];
     tiempoUltimoCambio = tiempoActual;
   }
@@ -161,15 +159,13 @@ void loop() {
   tiempo_ping = sonar.ping(35) ;
   posicion = (tiempo_ping / (velocidadSonido*2)) - referencia_fija; //en cm  
   y1 = posicion;
-  //velocidad_carrito = (posicion-posicion_anterior)/TS;
-  velocidad_carrito = 0.3 * ((posicion - posicion_anterior)/TS) + 
-                      0.7 * velocidad_carrito;
+  velocidad_carrito = (posicion-posicion_anterior)/TS;
   posicion_anterior = posicion;
 
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
 
-  titas[0] += (g.gyro.x - bias_gyroX) *(180/PI) *TS;                               //tita_g
+  titas[0] += (g.gyro.x - bias_gyroX) *(180/PI) *TS;                               
   titas[1] =  atan2((a.acceleration.y - bias_accY), (a.acceleration.z))*(180/PI); 
   titas[2] = titas[3] + (g.gyro.x - bias_gyroX) *(180/PI) *TS; 
   titas[3] = ((alfa * titas[1]) + ((1-alfa) *titas[2]));
@@ -181,8 +177,7 @@ void loop() {
 // ========= CONTROLADOR ==========
 float u_calc = 0;
 
-// K es un vector de 4 elementos, estados tambien.
-// Esto produce un solo numero u.
+
 for (int idx = 0; idx < 4; idx++) {
     u_calc += K[idx] * estados[idx]; // 
 }
@@ -190,7 +185,7 @@ for (int idx = 0; idx < 4; idx++) {
 u = -u_calc + F*ref;  
 
 // Saturación
-float umax = 30.0;
+float umax = 32.0;
 if (u > umax) u = umax;
 if (u < -umax) u = -umax;
 
@@ -244,9 +239,9 @@ datos[4] = posicion;                //Posicion medido
 datos[5] = ref;//velocidad_carrito; //Posicion_punto medido
 datos[6] = y2;                //tita medido
 datos[7] = (g.gyro.x - bias_gyroX)*(-180/PI); //tita_punto medido
-datos[8] = u;
+datos[8] = u;   // Entrada 
 
-  
+  // Vario la entrada del escalón
   if(i%100 == 0){
     j++;  
   }
